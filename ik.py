@@ -56,7 +56,7 @@ def convert_cartesian_coordinate_to_arm_angles(x, y, z, upperArmLength, lowerArm
     #do a general check to see if even a maximally stretched arm could reach the point
     # if it can't, return some dummy angle numbers of -999
     #note the base height correction in z
-    distanceFromOriginToEndPoint = get_distance_from_origin_to_cartesian_point_3D(x,y,z-baseHeight)
+    distanceFromOriginToEndPoint = get_distance_from_origin_to_cartesian_point_3D(x,y,z-heightFromBase)
     print(str(distanceFromOriginToEndPoint))
     if (distanceFromOriginToEndPoint > (upperArmLength + lowerArmLength)):
         return [-999,-999,-999]
@@ -64,7 +64,7 @@ def convert_cartesian_coordinate_to_arm_angles(x, y, z, upperArmLength, lowerArm
     baseAngle = get_polar_coordinate_angle_from_cartesian_x_y_coordinate(x,y)
     radiusToEndPoint = get_polar_coordinate_radius_from_cartesian_x_y_coordinate(x,y)
     #note the correction for base height
-    armAngles = get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_kinematics(radiusToEndPoint, z-baseHeight, upperArmLength, lowerArmLength)
+    armAngles = get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_kinematics(radiusToEndPoint, z-heightFromBase, upperArmLength, lowerArmLength)
     upperArmAngle = armAngles[0]
     lowerArmAngle = armAngles[1]
 
@@ -80,40 +80,42 @@ def get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_k
 
     #sudut dari seberang diam
     dd = math.acos((pow(upperArmLength,2)+pow(lowerArmLength,2)-pow(r,2)-pow(z,2))/(2*float(upperArmLength)*float(lowerArmLength)))
-    
-
-        
-    print "dd:"+str(dd)+"\r\n"
+    print "dd:"+str(dd)
+    print "ang_dd:"+str(math.degrees(dd))
 
     #seberang dari sudut dd , tegak lurus
     x=math.sin(dd)*upperArmLength
-    print "x:"+str(x)+"\r\n"
+    print "x:"+str(x)
 
+    y1=abs(math.cos(dd)*upperArmLength)
+    print "y1:"+str(y1)
 
-    y1=math.cos(dd)*upperArmLength
-    print "y1:"+str(y1)+"\r\n"
-
-    y2=lowerArmLength-y1
-    print "y2:"+str(y2)+"\r\n"
+    if (int(math.degrees(dd))>=int(90.0)):
+    	y2=abs(lowerArmLength+y1)
+    else:
+    	y2=abs(lowerArmLength-y1)
+    print "y2:"+str(y2)
 
     ang1 = math.degrees(math.atan2(x,y2))
-    print "ang1:"+str(ang1)+"\r\n"
+    print "ang1:"+str(ang1)
+    
+    print "z:"+str(z)
+    if (int(heightFromBase)>int(z+heightFromBase)):
+    	ang2 = 90-math.degrees(math.atan2(abs(z),abs(r)))
+    else:
+        ang2 = 90+math.degrees(math.atan2(abs(z),abs(r)))
+        print "up"
 
-    ang2 = 180.0-90.0-math.degrees(math.atan2(abs(z),abs(r)))
-    print "ang2:"+str(ang2)+"\r\n"
+    print "ang2:"+str(ang2)
 
-    upperArmAngle = ang2+ang1-90.0
-    print "upper:"+str(upperArmAngle)+"\r\n"
+    lowerArmAngle = ang2+ang1-90.0
+    print "lower_ang:"+str(lowerArmAngle)
      
-    #note that the upperArmAngle is dependent on the lowerArmAngle. This makes sense.
-    # can easily envision that upper arm would be at two different angles if arm is elbow up or down
-    #upperArmAngle = math.atan2(z,r) - math.atan2( (lowerArmLength * math.sin(lowerArmAngle)) , (upperArmLength + (lowerArmLength * math.cos(lowerArmAngle))) )
-
-    sudut_bantu = 180.0-math.degrees(dd)-upperArmAngle
+    sudut_bantu = 180.0-math.degrees(dd)-lowerArmAngle
     print "sudut_bantu:"+str(sudut_bantu)+"\r\n"
 
-    lowerArmAngle = 180.0 - math.degrees(dd) 
-    print "lowerArm:"+str(lowerArmAngle)+"\r\n"
+    upperArmAngle = 180.0 - math.degrees(dd) 
+    print "upper_ang:"+str(upperArmAngle)+"\r\n"
 
     upperArmAngle = math.radians(upperArmAngle)
     lowerArmAngle = math.radians(lowerArmAngle)
