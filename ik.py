@@ -15,12 +15,12 @@ import serial
 
 import math
 
-ser = serial.Serial(
-      port='COM3',
-      baudrate=115200,
-      )
+#ser = serial.Serial(
+#      port='COM3',
+#      baudrate=115200,
+#      )
 
-ser.isOpen()
+#ser.isOpen()
 
 
 """
@@ -219,12 +219,9 @@ if __name__ == '__main__':
             print('Lower Arm Angle: ' + str(angles[2]))
             print('\n')
 
-            ser.write(struct.pack('f',float(angles[0])))
-            ser.write(struct.pack('f',float(angles[1])))
-            ser.write(struct.pack('f',float(angles[2])))
-
-
-
+#            ser.write(struct.pack('f',float(angles[0])))
+#            ser.write(struct.pack('f',float(angles[1])))
+#            ser.write(struct.pack('f',float(angles[2])))
 
 
         else:
