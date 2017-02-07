@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import robot as rb
 import sys
 import rospy
 from tarobaban.srv import *
@@ -41,7 +41,7 @@ def convert_cartesian_coordinate_to_arm_angles(x, y, z, upperArmLength, lowerArm
     lowerArmAngle = armAngles[1]
 
     #convert the angles to degrees when you return them
-    return [baseAngle * (180/math.pi), upperArmAngle * (180/math.pi), lowerArmAngle * (180/math.pi)]
+    return [baseAngle * (180/math.pi), lowerArmAngle * (180/math.pi), upperArmAngle * (180/math.pi)]
 
 
 
@@ -145,6 +145,22 @@ def give_angles(x, y, z):
     except rospy.ServiceException, e:
         print "Service call failed: %s"%e
 
+def trns(x,y,z):
+    #define here the transform translation and rotation
+    a = rb.transl(0, 750,0)
+    b = rb.trotz(rb.deg2rad(180))
+
+    #asumsi titik + [1]
+    pt = [[x],[y],[z],[1]]
+    cc = a + (b * pt)
+    result = rb.transl(cc)
+    x,y,z=result
+
+    #kembalikan kebentuk kord
+    x=-x[0,0]
+    y=y[0,0]
+    z=z[0,0]
+    return x,y,z
 
 if __name__ == "__main__":
 
@@ -154,19 +170,23 @@ if __name__ == "__main__":
         x = input('Enter x: ')
         y = input('Enter y: ')
         z = input('Enter z: ')
+
+        #convert to user cordinate
+        x,y,z = trns(x,y,z)
+
         angles = convert_cartesian_coordinate_to_arm_angles(float(x),float(y),float(z),lengthUpperArm,lengthLowerArm,heightFromBase)
 
         if(angles[0] != -999):
             print('\nFor the point (' + str(x) + ' , ' + str(y) + ' , ' + str(z) + ') , the angles are:' )
             print('Base Angle: ' + str(angles[0]))
-            print('Upper Arm Angle: ' + str(angles[1]))
-            print('Lower Arm Angle: ' + str(angles[2]))
+            print('Lower Arm Angle: ' + str(angles[1]))
+            print('Upper Arm Angle: ' + str(angles[2]))
             print('\n')
 
 #            ser.write(struct.pack('f',float(angles[0])))
 #            ser.write(struct.pack('f',float(angles[1])))
 #            ser.write(struct.pack('f',float(angles[2])))
-            give_angles(math.radians(angles[0]), math.radians(angles[1]), math.radians((angles[2]+90)))
+            give_angles(math.radians(-angles[0]), math.radians((-angles[1]+90)), math.radians((angles[2])))
 
         else:
             print('Invalid coordinate: Out of arm\'s range.')
