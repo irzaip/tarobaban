@@ -7,8 +7,6 @@ License: MIT
 
 
 """
-
-
 import struct
 import time
 import serial
