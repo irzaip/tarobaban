@@ -1,19 +1,45 @@
-#!/usr/bin/env python
+"""
+Implements inverse and forward kinematics functions, in addition to other movement calculation functions for the Dobot Arm
+First Author: Mike Ferguson www.mikeahferguson.com 3/26/2016
+Additional Authors (Add your name below):
+1.
+License: MIT
 
-import sys
-import rospy
-from tarobaban.srv import *
+
+"""
 import struct
 import time
 import serial
+
 import math
 
+#ser = serial.Serial(
+#      port='COM3',
+#      baudrate=115200,
+#      )
 
-ret0 = 0.0
-ret1 = 0.0
-ret2 = 0.0
+#ser.isOpen()
 
 
+"""
+polar coordinates conversion: https://www.youtube.com/watch?v=L4v98ZZft68
+IK 2D, 2DOF, revolute revolute: https://www.youtube.com/watch?v=cvzv3YxuoQE
+
+algorithm
+
+xy plane is paralell to surface dobot is on. z is perpendicular
+1. first get distance, in xy plane, to current point from origin using forward kinematics, known angles, and pythagoreas thm. This is your radius. Your angle can be defined to be theta original. You now have your starting point in polar coordinates.
+2. Ignore the desired z position data for now. Get the polar coordinates for the desired point. The radius is not important now. The angle is though. Subtracting the desired angle from the current angle gives you the number of degrees and direction to rotate the base.
+3. The radius from step 1 (starting radius) gives you your current horizontal position (imagine it as x or y, doesn't matter). You also already know your current z position (potentially from step 1).
+4. The radius from step 2 (desired radius) gives you your desired horizontal position (imagine it as x or y, doesn't matter). Of course, the user has already input the desired z position. This is now a 2D problem with two arms that each rotate (2 degrees of freedom)
+5: use IK, see ik 2d video, to find number of degrees and direction to rotate upper and lower arms. Note that there are often two solutions. One (elbow down) is not possible.
+6. Check that move is valid (e.g. not out of range, etc...)
+7. move
+
+
+default working angle units are radians
+"""
+#length and height dimensions in mm
 lengthUpperArm = 479.0
 lengthLowerArm = 350.0
 heightFromBase = 335.0
@@ -63,9 +89,9 @@ def get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_k
     print "y1:"+str(y1)
 
     if (int(math.degrees(dd))>=int(90.0)):
-        y2=abs(lowerArmLength+y1)
+    	y2=abs(lowerArmLength+y1)
     else:
-        y2=abs(lowerArmLength-y1)
+    	y2=abs(lowerArmLength-y1)
     print "y2:"+str(y2)
 
     ang1 = math.degrees(math.atan2(x,y2))
@@ -73,7 +99,7 @@ def get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_k
     
     print "z:"+str(z)
     if (int(heightFromBase)>int(z+heightFromBase)):
-        ang2 = 90-math.degrees(math.atan2(abs(z),abs(r)))
+    	ang2 = 90-math.degrees(math.atan2(abs(z),abs(r)))
     else:
         ang2 = 90+math.degrees(math.atan2(abs(z),abs(r)))
         print "up"
@@ -136,18 +162,46 @@ def get_base_angle():
     return 45#or radians!
 
 
-def give_angles(x, y, z):
-    rospy.wait_for_service('get_angle')
-    try:
-        get_angles = rospy.ServiceProxy('get_angle', get_angle)
-        resp1 = get_angles(x, y, z)
-        return 
-    except rospy.ServiceException, e:
-        print "Service call failed: %s"%e
+"""
+
+    #get polar coordinates for the current point
+    #radius is simply given by the base angle
+    # can read the angles from the IMU and empirically determine the radius and angle - I'm using this approach since it should account for any build up in error, assuming accelerometers
+    #are accurate!!!!
+    #alternatively can just use pythagorean thm on theoretical current x,y data
+
+    startUpperArmAngle = get_upper_arm_angle
+    startLowerArmAngle = get_lower_arm_angle
+    startBaseAngle = get_base_angle
+
+    #could abstract this next bit into a 2D forward kinematics function and then just use the horizontal data returned
+    #only care about the radius, so
 
 
-if __name__ == "__main__":
+    currentPosPolarCoordRadius = ???
+    currentPosPolarCoordAngle = currentBaseAngle
 
+
+    #end get polar coordinates
+
+
+def get_radius_in_horizontal_plane_to_cartesian_end_effector_position_using_2d_revolute_revolute_forward_kinematics(upperArmAngle, lowerArmAngle, upperArmLength, lowerArmLength):
+    #the equation for radius is determined using forward kinematics, just uses socahtoa rules, namely coa here.
+    radius = ( math.cos(upperArmAngle) * upperArmLength ) + ( math.cos(upperArmAngle + lowerArmAngle) * lowerArmLength )
+    return radius
+
+
+"""
+
+
+if __name__ == '__main__':
+
+
+
+    # length and height dimensions in mm
+    lengthUpperArm = 479.0
+    lengthLowerArm = 350.0
+    heightFromBase = 335.0
 
     commandFlag = True
     while(commandFlag):
@@ -166,7 +220,7 @@ if __name__ == "__main__":
 #            ser.write(struct.pack('f',float(angles[0])))
 #            ser.write(struct.pack('f',float(angles[1])))
 #            ser.write(struct.pack('f',float(angles[2])))
-            give_angles(math.radians(angles[0]), math.radians(angles[1]), math.radians((angles[2]+90)))
+
 
         else:
             print('Invalid coordinate: Out of arm\'s range.')
@@ -176,4 +230,4 @@ if __name__ == "__main__":
         if (s == 'y'):
             commandFlag = False
 
-    
+
