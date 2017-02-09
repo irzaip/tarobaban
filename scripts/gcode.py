@@ -1,3 +1,6 @@
+#i create this for reading gcode (Linear)
+# arc not implemented
+
 import re
 
 fil = open('test.gcode')

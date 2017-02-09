@@ -9,6 +9,7 @@ import serial
 import math
 import os, struct, array
 from fcntl import ioctl
+from visualization_msgs.msg import *
 
 
 ret0 = 0.0
@@ -16,9 +17,9 @@ ret1 = 0.0
 ret2 = 0.0
 
 
-lengthUpperArm = 479.0
-lengthLowerArm = 350.0
-heightFromBase = 335.0
+lengthUpperArm = 0.479
+lengthLowerArm = 0.350
+heightFromBase = 0.335
 
 
 
@@ -166,6 +167,16 @@ z_cord = 0.0
 
 debug = False
 
+def update_IM(x,y,z):
+    command = InteractiveMarkerFeedback()
+    command.event_type = 1
+    command.pose.position.x = x
+    command.pose.position.y = y
+    command.pose.position.z = z
+    command.marker_name = "simple_6dof_MOVE_3D"
+    pub.publish(command)
+    #rate.sleep()
+
 
 #input:
 #cartesian (x,y,z) coordinate
@@ -296,7 +307,7 @@ def give_angles(x, y, z):
 
 def trns(x,y,z):
     #define here the transform translation and rotation
-    a = rb.transl(0, 750,0)
+    a = rb.transl(0, 0.750,0)
     b = rb.trotz(rb.deg2rad(180))
 
     #asumsi titik + [1]
@@ -321,33 +332,50 @@ def go_cord(x,y,z):
 
 
 if __name__ == "__main__":
+
+    pub = rospy.Publisher('/basic_controls/feedback', InteractiveMarkerFeedback, queue_size=10)
+    rospy.init_node('IM_joystick', anonymous=True)
+    rate = rospy.Rate(10) # 10hz
+
+
     while True:
 
         #make X movement
         if x_val > 0.1:
-            x_cord=x_cord+(x_val*10.0)
+            x_cord=x_cord+(x_val*0.01)
             print "x_cord::",x_cord
+            update_IM(x_cord,y_cord,z_cord)
+
         if x_val < -0.1:
-            x_cord=x_cord+(x_val*10.0)
+            x_cord=x_cord+(x_val*0.01)
             print "x_cord::",x_cord
+            update_IM(x_cord,y_cord,z_cord)
+
 
         #make Y movement
         #y substraction to reverse AXIS
         if y_val > 0.1:
-            y_cord=y_cord-(y_val*10.0)
+            y_cord=y_cord-(y_val*0.01)
             print "y_cord::",y_cord
+            update_IM(x_cord,y_cord,z_cord)
+
         if y_val < -0.1:
-            y_cord=y_cord-(y_val*10.0)
+            y_cord=y_cord-(y_val*0.01)
             print "y_cord::",y_cord
+            update_IM(x_cord,y_cord,z_cord)
+
         #make Z movement with ry
         #inverse axis too
         if ry_val > 0.1:
-            z_cord=z_cord-(ry_val*10.0)
+            z_cord=z_cord-(ry_val*0.01)
             print "z_cord::",z_cord
+            update_IM(x_cord,y_cord,z_cord)
+
         if ry_val < -0.1:
-            z_cord=z_cord-(ry_val*10.0)
+            z_cord=z_cord-(ry_val*0.01)
             print "z_cord::",z_cord
-        
+            update_IM(x_cord,y_cord,z_cord)
+
 
         
         evbuf = jsdev.read(8)
@@ -363,8 +391,11 @@ if __name__ == "__main__":
                     button_states[button] = value
                     if value:
                         print "%s pressed" % (button)
-                        if button=='x': print "MOVE"
-                        go_cord(x_cord,y_cord,z_cord)
+                        if button=='x': 
+                            print "MOVE"
+                            go_cord(x_cord,y_cord,z_cord)
+                        if button=='tr':
+                            sys.exit()
 
                     else:
                         print "%s released" % (button)
@@ -374,7 +405,7 @@ if __name__ == "__main__":
                 if axis:
                     fvalue = value / 32767.0
                     axis_states[axis] = fvalue
-                    print "%s: %.3f" % (axis, fvalue    )
+                    print "%s: %.3f" % (axis, fvalue)
 
                     #additional move to cord
                     if axis == 'x':

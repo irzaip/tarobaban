@@ -1,3 +1,5 @@
+# demo code for transformation 
+# by irza
 import robot as rb
 
 def trns(x,y,z):
