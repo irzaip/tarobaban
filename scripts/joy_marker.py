@@ -49,8 +49,8 @@ counter = 0
 def frameCallback( msg ):
     global counter, br
     time = rospy.Time.now()
-    br.sendTransform( (0, 0, sin(counter/140.0)*2.0), (0, 0, 0, 1.0), time, "base_link", "moving_frame" )
-    counter += 1
+    #br.sendTransform( (0, 0, sin(counter/140.0)*2.0), (0, 0, 0, 1.0), time, "base_link", "moving_frame" )
+    #counter += 1
 
 def processFeedback( feedback ):
     s = "Feedback from marker '" + feedback.marker_name

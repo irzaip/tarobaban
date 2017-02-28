@@ -14,9 +14,9 @@ ret1 = 0.0
 ret2 = 0.0
 
 
-lengthUpperArm = 479.0
-lengthLowerArm = 350.0
-heightFromBase = 335.0
+lengthUpperArm = 0.479
+lengthLowerArm = 0.350
+heightFromBase = 0.335
 
 #input:
 #cartesian (x,y,z) coordinate
@@ -80,7 +80,7 @@ def get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_k
 
     print "ang2:"+str(ang2)
 
-    lowerArmAngle = ang2+ang1-90.0
+    lowerArmAngle = 90-ang2+ang1
     print "lower_ang:"+str(lowerArmAngle)
      
     sudut_bantu = 180.0-math.degrees(dd)-lowerArmAngle
@@ -147,7 +147,7 @@ def give_angles(x, y, z):
 
 def trns(x,y,z):
     #define here the transform translation and rotation
-    a = rb.transl(0, 750,0)
+    a = rb.transl(0, 0.750,0)
     b = rb.trotz(rb.deg2rad(180))
 
     #asumsi titik + [1]

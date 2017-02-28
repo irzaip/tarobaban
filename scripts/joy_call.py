@@ -174,6 +174,8 @@ def update_IM(x,y,z):
     command.pose.position.y = y
     command.pose.position.z = z
     command.marker_name = "simple_6dof_MOVE_3D"
+    command.control_name = "wow"
+    rospy.loginfo('marker to x: %s, y: %s, z: %s' % (str(x),str(y), str(z)))
     pub.publish(command)
     #rate.sleep()
 
@@ -240,7 +242,7 @@ def get_arm_angles_from_radius_z_coordinate_using_2d_revolute_revolute_inverse_k
 
     if debug: print "ang2:"+str(ang2)
 
-    lowerArmAngle = ang2+ang1-90.0
+    lowerArmAngle = 90-ang2+ang1
     if debug: print "lower_ang:"+str(lowerArmAngle)
      
     sudut_bantu = 180.0-math.degrees(dd)-lowerArmAngle
@@ -307,8 +309,8 @@ def give_angles(x, y, z):
 
 def trns(x,y,z):
     #define here the transform translation and rotation
-    a = rb.transl(0, 0.750,0)
-    b = rb.trotz(rb.deg2rad(180))
+    a = rb.transl(0,0 ,0)
+    b = rb.trotz(rb.deg2rad(-90))
 
     #asumsi titik + [1]
     pt = [[x],[y],[z],[1]]
@@ -392,7 +394,7 @@ if __name__ == "__main__":
                     if value:
                         print "%s pressed" % (button)
                         if button=='x': 
-                            print "MOVE"
+                            print "MOVE",x_cord,y_cord,z_cord
                             go_cord(x_cord,y_cord,z_cord)
                         if button=='tr':
                             sys.exit()
