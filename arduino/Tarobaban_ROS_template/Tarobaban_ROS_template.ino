@@ -3,34 +3,31 @@
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);           // select the pins used on the LCD panel
 
 
-#include <TimerOne.h>
+
 #include <ros.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/UInt16.h>
 #include <tarobaban/set_angle.h>
 #include <tarobaban/angle.h>
 
 
-tarobaban::set_angle set_angle;
-tarobaban::angle angle;
+tarobaban::angle ros_angle;
 
-ros::Publisher pub_ang("angle", &angle);
+ros::Publisher pub_ang("ros_angle", &ros_angle);
 ros::NodeHandle nh;
 
 
-void set_angle(const tarobaban::set_angle& set_angle){
+void set_angles(const tarobaban::set_angle& set_angle){
     lcd.setCursor(0,0);
-    lcd.print(set_ang_msg.bs_to);   //base angle
+    lcd.print(set_angle.ba_to);   //base angle
     
     lcd.setCursor(0,8);
-    lcd.print(set_ang_msg.la_to);   //lower angle
+    lcd.print(set_angle.la_to);   //lower angle
     
     lcd.setCursor(1,0);
-    lcd.print(set_ang.msg.ua_to);
+    lcd.print(set_angle.up_to);
 }
 
 
-ros::Subscriber<tarobaban::angle> sub("set_angle", set_angle);
+ros::Subscriber<tarobaban::set_angle> sub("angle", set_angles);
 
 
 void setup(){
@@ -40,7 +37,7 @@ void setup(){
 
   pinMode(3,OUTPUT);
   pinMode(4,OUTPUT);
-  
+  pinMode(5,OUTPUT);
   
   nh.initNode();
   nh.advertise(pub_ang);
@@ -51,9 +48,10 @@ void setup(){
 
 void loop() {
   
-   angle.ba = 3;
-   angle.la = 3;
-   angle.ua = 3;
+   ros_angle.ba = 3;
+   ros_angle.la = 3;
+   ros_angle.ua = 3;
+
    
    nh.spinOnce();
    delay(1);

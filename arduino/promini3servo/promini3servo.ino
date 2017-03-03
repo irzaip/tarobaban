@@ -7,6 +7,15 @@
 // - Motor 2 & Motor 3: BTS 7960
 //
 
+#include <ros.h>
+#include <tarobaban/set_angle.h>
+#include <tarobaban/angle.h>
+
+tarobaban::angle ros_angle;
+
+ros::Publisher pub_ang("ros_angle", &ros_angle);
+ros::NodeHandle nh;
+
 // 
 #include <EEPROM.h>
 // eeprom interesting article: http://playground.arduino.cc/Code/EEPROMWriteAnything
@@ -90,6 +99,45 @@ servo_t servos[] = {
   { { A0, 12, 10, 0 }, 0.0, 0, 0, 0, 0, 50, 0, 0, 0 }  // upper arm
 };
 
+
+void set_angles(const tarobaban::set_angle& set_angle){
+    //lcd.setCursor(0,0);
+    //lcd.print(set_angle.ba_to);   //base angle
+   
+    //lcd.setCursor(0,8);
+    //lcd.print(set_angle.la_to);   //lower angle
+    
+    //lcd.setCursor(1,0);
+    //lcd.print(set_angle.up_to);
+
+  if(set_angle.ba_to != servos[0].ADC_SetPoint) {
+     servos[0].ADC_SetPointOld = servos[0].ADC_SetPoint;
+     servos[0].ADC_SetPoint = set_angle.ba_to;
+     } 
+  
+  if(set_angle.la_to != servos[1].ADC_SetPoint) {
+     servos[1].ADC_SetPointOld = servos[1].ADC_SetPoint;
+     servos[1].ADC_SetPoint = set_angle.la_to;
+     } 
+  
+  if(set_angle.up_to != servos[2].ADC_SetPoint) {
+     servos[2].ADC_SetPointOld = servos[2].ADC_SetPoint;
+     servos[2].ADC_SetPoint = set_angle.up_to; 
+     }
+
+}
+
+ros::Subscriber<tarobaban::set_angle> sub("angle", set_angles);
+
+void ros_status(void){
+
+  ros_angle.ba = servos[0].ADC_ServoPoti;
+  ros_angle.la = servos[1].ADC_ServoPoti;
+  ros_angle.ua = servos[2].ADC_ServoPoti;
+
+  pub_ang.publish(&ros_angle);
+}
+
 void motorSpin(const servo_pin_t &motor, rotation direction, byte dutycycle);
 
 #if ENABLED(USE_SERIAL_MONITOR)
@@ -172,6 +220,10 @@ void setup() {
     if(servos[i].pins.pwm) pinMode(servos[i].pins.pwm, OUTPUT);
     pinMode(servos[i].pins.sensor, INPUT);
   }
+
+  nh.initNode();
+  nh.advertise(pub_ang);
+  nh.subscribe(sub);
 }
 
 #if ENABLED(USE_OLED_DISPLAY)
@@ -324,6 +376,9 @@ void loop() {
   #if ENABLED(USE_OLED_DISPLAY)
   oledDraw();
   #endif
+
+  ros_status();
+  nh.spinOnce();
 }
 
 void motorSpin(const servo_pin_t &motor, rotation direction, byte dutycycle) {
@@ -375,11 +430,11 @@ void motorSpin(const servo_pin_t &motor, rotation direction, byte dutycycle) {
 }
 
 void runServo(int ServoId) {
-  int setPoint = map(servos[ServoId].angle, MIN_ANGLE, MAX_ANGLE, MIN_VALUE, MAX_VALUE);
+  /* int setPoint = map(servos[ServoId].angle, MIN_ANGLE, MAX_ANGLE, MIN_VALUE, MAX_VALUE);
   if(setPoint != servos[ServoId].ADC_SetPoint) {
     servos[ServoId].ADC_SetPointOld = servos[ServoId].ADC_SetPoint;
     servos[ServoId].ADC_SetPoint = setPoint;
-  }
+  } */
   servos[ServoId].ADC_ServoPotiOld = servos[ServoId].ADC_ServoPoti;
   servos[ServoId].ADC_ServoPoti = analogRead(servos[ServoId].pins.sensor);
   servos[ServoId].ADCdiff = servos[ServoId].ADC_SetPoint - servos[ServoId].ADC_ServoPoti;
