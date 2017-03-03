@@ -3,7 +3,6 @@
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);           // select the pins used on the LCD panel
 
 
-
 #include <ros.h>
 #include <tarobaban/set_angle.h>
 #include <tarobaban/angle.h>

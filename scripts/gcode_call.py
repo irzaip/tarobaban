@@ -182,7 +182,7 @@ def Find(pat,txt):
 if __name__ == "__main__":
 
 
-    fil = open('test.gcode')
+    fil = open('/home/irq/catkin_ws/src/tarobaban/scripts/test.gcode')
     com = fil.readlines()
 
 
