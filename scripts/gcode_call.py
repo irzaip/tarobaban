@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import re
 import robot as rb
 import sys
@@ -181,8 +182,9 @@ def Find(pat,txt):
 
 if __name__ == "__main__":
 
-
-    fil = open('/home/irq/catkin_ws/src/tarobaban/scripts/test.gcode')
+    
+    sdir = os.path.dirname(os.path.realpath(__file__))
+    fil = open(str(sdir) + '/' + 'test.gcode')
     com = fil.readlines()
 
 
